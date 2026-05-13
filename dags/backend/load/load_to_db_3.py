@@ -61,12 +61,16 @@ def load_data_into_db(data_json,table_name,columns,schema,col_conflict):
     conn.commit()
     cursor.close()
     conn.close()
-def load_to_db_2():
-    dirpath = '/usr/local/data/processed/region'
-    extension = '.json'
-    region_processed_newest = read_newest_file(dirpath,extension)
-    with open(region_processed_newest,'r') as file:
-        data = [json.loads(line) for line in file if file]
-    load_data_into_db(data,'region',['region_name','market_type','local_open','local_close'],'stock_schema',['region_name'])
 
+def load_to_db_3():
+    dirpath = '/usr/local/data/processed/exchange'
+    extension = '.json'
+    exchange_newsest_json = read_newest_file(dirpath,extension)
+    with open(exchange_newsest_json,'r') as file:
+        data = [json.loads(line) for line in file]
+    columns = ['region_id','exchange_name']
+    table_name = 'exchange'
+    schema ='stock_schema'
+    col_conflict = ['exchange_name']
+    load_data_into_db(data,table_name,columns,schema,col_conflict)
     

@@ -6,6 +6,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 import pandas as pd
 import numpy as np
+import os
+from sqlalchemy import create_engine
 def read_newest_file(dirpath,extension):
     logger = logging.getLogger(__name__)
     path = Path(dirpath)
@@ -31,22 +33,33 @@ def df_to_file(df,dirname,filename):
     dirname.mkdir(parents=True,exist_ok=True)
     df.to_json(f'{dirname}/{filename}_{date}.json',orient='records',lines=True)
     logger.info("Saved to file successfully!")
-def transform_to_db_2():
+
+def trans_to_db_3():
+    load_dotenv('/usr/local/.env')
     dirpath = '/usr/local/data/raw/markets'
     extension = '.json'
     newest_market = read_newest_file(dirpath,extension)
     market_df = pd.read_json(newest_market)
-    region_df = trans_dataframe(
-        market_df[['region','market_type','local_open','local_close']]
-    )
-    region_df = region_df.rename(columns = 
-        {
-            'region':'region_name'
-        }
-    )
-    path_to_file = '/usr/local/data/processed/region'
-    filename = 'region_processed'
-    df_to_file(region_df,path_to_file,filename)
+    market_df = market_df[['region','primary_exchanges']]
+    market_df = market_df.rename(columns={
+        'region':'region_name',
+        'primary_exchanges':'exchange_name'
+    })
+    market_df['exchange_name'] = market_df['exchange_name'].str.split(', ')
+    market_df = market_df.explode('exchange_name').reset_index(drop=True)
+    exchange_df =market_df
 
+    user = os.getenv("POSTGRES_USER")
+    password = os.getenv("POSTGRES_PASSWORD")
+    host = os.getenv("POSTGRES_HOST")
+    port = os.getenv("POSTGRES_PORT")
+    db = os.getenv("POSTGRES_DB")
 
-    
+    db_url = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{db}"
+    engine = create_engine(db_url)
+    query = " SELECT * FROM stock_schema.region"
+    region_df = pd.read_sql(query,con=engine)
+    exchange_df = pd.merge(exchange_df, region_df,on='region_name',how='inner')
+    exchange_df = exchange_df[['region_id','exchange_name']]
+    dirname = '/usr/local/data/processed/exchange'
+    df_to_file(exchange_df,dirname,'exchange_processed')
