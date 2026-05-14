@@ -17,7 +17,7 @@ default_args = {
 }
 
 with DAG (
-    dag_id = 'Extracing API and load data to database',
+    dag_id='Extracing_API_and_load_data_to_database',
     default_args = default_args,
     schedule = '0 0 1 * *',
     start_date = pendulum.datetime(2025,1,1,tz='Asia/Ho_Chi_Minh'),
