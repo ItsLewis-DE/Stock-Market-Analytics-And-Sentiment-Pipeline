@@ -53,3 +53,4 @@ sources:
                 - not_null
         - name: news
         - name: ohlc
+        - name: dim_date

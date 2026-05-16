@@ -52,7 +52,7 @@ def trans_par(tablename,columns,col_conflict):
     query_merge = f"""
         MERGE INTO stock_schema.{tablename} AS target
         USING (
-            SELECT *, DATEADD(day, -1,CONVERT_TIMEZONE('Asia/Ho_Chi_Minh', CURRENT_TIMESTAMP())) AS inserted_at_value 
+            SELECT *, DATEADD(day, -1,CONVERT_TIMEZONE('Asia/Ho_Chi_Minh', CURRENT_TIMESTAMP())::TIMESTAMP_NTZ) AS inserted_at_value 
             FROM stock_schema.{tablename}_stg
         ) AS source
         ON {col_conflict_string}
