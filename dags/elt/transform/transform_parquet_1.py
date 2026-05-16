@@ -38,13 +38,23 @@ def trans_par(tablename,columns,col_conflict):
         FILE_FORMAT = (TYPE = PARQUET);
     """
     columns_string = ', '.join([f'target.{col} = source.{col}' for col in columns if col not in col_conflict])
-    columns_insert_string =', '.join([f'{col}' for col in columns])
-    columns_value_string = ', '.join([f'source.{col}' for col in columns])
+# 1. Giữ nguyên cấu trúc các cột insert như cũ
+    columns_insert_string = ', '.join([f'{col}' for col in columns]) + ', inserted_at'
+    
+    # 2. Đổi 'DATEADD(...)' thành 'source.inserted_at_value'
+    columns_value_string = ', '.join([f'source.{col}' for col in columns]) + ', source.inserted_at_value'
+    
     conflict_conditions = [f'target.{col} = source.{col}' for col in col_conflict]
     col_conflict_string = ' AND '.join(conflict_conditions)
+    
+    # 3. Thay đổi mệnh đề USING: Thay vì dùng trực tiếp bảng _stg, 
+    # chúng ta SELECT từ _stg và thêm một cột động chứa thời gian.
     query_merge = f"""
         MERGE INTO stock_schema.{tablename} AS target
-        USING stock_schema.{tablename}_stg AS source
+        USING (
+            SELECT *, DATEADD(day, -1,CONVERT_TIMEZONE('Asia/Ho_Chi_Minh', CURRENT_TIMESTAMP())) AS inserted_at_value 
+            FROM stock_schema.{tablename}_stg
+        ) AS source
         ON {col_conflict_string}
         WHEN MATCHED THEN
         UPDATE SET
@@ -74,38 +84,44 @@ def trans_par(tablename,columns,col_conflict):
     conn.close()
 
 def transform_parquet_1():
-    #trans table company
+    # trans table company
     tablename = 'company'
     col_conflict = ['ticker','cik']
     columns = ['company_id','company_name','ticker','cik','cusip','exchange_id','isDelisted','industry_id','location','currency','category','sic_code']
     trans_par(tablename,columns,col_conflict)
 
-    # #trans table exchange
-    # tablename = 'exchange'
-    # col_conflict = ['exchange_name']
-    # columns = ['exchange_id','exchange_name','region_id']
-    # trans_par(tablename,columns,col_conflict)
+    #trans table exchange
+    tablename = 'exchange'
+    col_conflict = ['exchange_name']
+    columns = ['exchange_id','exchange_name','region_id']
+    trans_par(tablename,columns,col_conflict)
 
-    # # trans table fama_classification
-    # tablename = 'fama_classification'
-    # columns = ['fama_id','fama_industry','fama_sector']
-    # col_conflict = ['fama_industry','fama_sector']
-    # trans_par(tablename,columns,col_conflict)
+    # trans table fama_classification
+    tablename = 'fama_classification'
+    columns = ['fama_id','fama_industry','fama_sector']
+    col_conflict = ['fama_industry','fama_sector']
+    trans_par(tablename,columns,col_conflict)
 
-    # #trans table industry
-    # tablename = 'industry'
-    # columns = ['industry_id','industry_name','sector_name']
-    # col_conflict = ['industry_name']
-    # trans_par(tablename,columns,col_conflict)
+    #trans table industry
+    tablename = 'industry'
+    columns = ['industry_id','industry_name','sector_name']
+    col_conflict = ['industry_name']
+    trans_par(tablename,columns,col_conflict)
 
-    # #trans table news
-    # tablename = 'news'
-    # columns = ['title','url','time_published','authors','summary','banner_image','source','category_within_source','source_domain','topics','overall_sentiment_score','overall_sentiment_label','ticker_sentiment']
-    # col_conflict = ['title']
-    # trans_par(tablename,columns,col_conflict)
+    #trans table news
+    tablename = 'news'
+    columns = ['title','url','time_published','authors','summary','banner_image','source','category_within_source','source_domain','topics','overall_sentiment_score','overall_sentiment_label','ticker_sentiment']
+    col_conflict = ['title']
+    trans_par(tablename,columns,col_conflict)
 
-    # # #trans table ohlc
-    # tablename = 'ohlc'
-    # columns = ['T','v','vw','o','c','h','l','t_time','n']
-    # col_conflict = ['T','t_time']
-    # trans_par(tablename,columns,col_conflict)
+    # #trans table ohlc
+    tablename = 'ohlc'
+    columns = ['T','v','vw','o','c','h','l','t_time','n']
+    col_conflict = ['T','t_time']
+    trans_par(tablename,columns,col_conflict)
+
+    #trans table sic_classification
+    tablename = 'sic_classification'
+    columns = ['sic_code','sic_industry','sic_sector','fama_id']
+    col_conflict = ['sic_code']
+    trans_par(tablename,columns,col_conflict)

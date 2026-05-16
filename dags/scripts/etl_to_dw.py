@@ -44,6 +44,4 @@ with DAG (
             task_id = 'transform_to_parquet_1_task',
             python_callable = transform_parquet_1
         )
-        transform_to_parquet_1_task
     # extract_group >> load_group >> 
-    transform_group

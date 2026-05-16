@@ -12,3 +12,44 @@ sources:
             - name: company_name
               tests:
                 - not_null
+        - name: exchange
+          columns:
+            - name: exchange_id
+              tests:
+                - not_null
+                - unique
+            - name: exchange_name
+              tests:
+                - not_null
+        - name: fama_classification
+          columns:
+            - name: fama_id
+              tests:
+                - not_null
+                - unique
+        - name: sic_classification
+          columns:
+            - name: sic_code
+              tests:
+                - not_null
+                - unique
+        - name: industry
+          columns:
+            - name: industry_id
+              tests:
+                - not_null
+                - unique
+            - name: industry_name
+              tests:
+                - not_null
+        - name: region
+          columns:
+            - name: region_id
+              tests:
+                - not_null
+                - unique
+            - name: region_name
+              tests:
+                - not_null
+        - name: news
+        - name: ohlc
