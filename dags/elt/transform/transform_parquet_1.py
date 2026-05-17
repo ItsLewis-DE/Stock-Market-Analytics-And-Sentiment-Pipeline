@@ -14,7 +14,7 @@ import snowflake.connector
 def trans_par(tablename,columns,col_conflict):
     load_dotenv('/usr/local/.env')
     logger = logging.getLogger(__name__)
-    current_date = pendulum.now(tz='Asia/Ho_Chi_Minh').subtract(days=1).strftime("%Y_%m_%d")
+    current_date = pendulum.now(tz='Asia/Ho_Chi_Minh').subtract(days=2).strftime("%Y_%m_%d")
     logger.info("Connecting to snowflake!")
     conn = snowflake.connector.connect(
         user=os.getenv("SNOWFLAKE_USER"),
@@ -124,4 +124,10 @@ def transform_parquet_1():
     tablename = 'sic_classification'
     columns = ['sic_code','sic_industry','sic_sector','fama_id']
     col_conflict = ['sic_code']
+    trans_par(tablename,columns,col_conflict)
+
+    #trans table region
+    tablename = 'region'
+    columns = ['region_id','region_name','market_type','local_open','local_close']
+    col_conflict = ['region_name']
     trans_par(tablename,columns,col_conflict)
