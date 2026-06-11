@@ -10,3 +10,7 @@ airflow-webserver.pid
 webserver_config.py
 airflow.cfg
 airflow.db
+.python-version
+pyproject.toml
+requirements.txt
+.astro
