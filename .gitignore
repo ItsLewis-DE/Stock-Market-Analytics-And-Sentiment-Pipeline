@@ -14,3 +14,4 @@ airflow.db
 pyproject.toml
 requirements.txt
 .astro
+uv.lock
